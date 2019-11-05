@@ -112,11 +112,35 @@ class DescisionVariables:
 		self.disassembly_selected = disassembly_selected
 
 
-def array_sum(array_values):
-	result = 0
-	for i in array_values:
-		result = result + i
-	return result
+def get_sum_of_storage_centers(models):
+	sum_of_storage_centers = 0
+	for y in models:
+		sum_of_storage_centers = sum_of_storage_centers + \
+								 ((y.shipping_storage_cost +
+								   y.transp_storage_cost * y.distance_storage)
+								  * descison_variables.storage_selected)
+	return sum_of_storage_centers
+
+
+def get_sum_of_distribution_centers(models):
+	sum_of_distribution_centers = 0
+	for y in models:
+		sum_of_distribution_centers = sum_of_distribution_centers + \
+									  ((y.shipping_distribution_cost +
+										y.transp_distribution_cost
+										* y.distance_distribution)
+									   * descison_variables.
+									   distribution_selected)
+	return sum_of_distribution_centers
+
+
+def get_sum_of_manufacture_method(models):
+	sum_of_manufacture_method = 0
+	for y in models:
+		sum_of_manufacture_method = sum_of_manufacture_method + \
+									(y.hours_raw * y.labor_cost *
+									 descison_variables.manufacture_selected)
+	return sum_of_manufacture_method
 
 if __name__=='__main__':
 	models = [ProductModel(), ProductModel(), ProductModel()]
@@ -124,21 +148,10 @@ if __name__=='__main__':
 
 	sum_of_product = 0
 	for i in models:
-		sum_of_storage_centers = 0
-		sum_of_distribution_centers = 0
 		sum_of_manufacture_method = 0
-
-		for y in models:
-			sum_of_storage_centers = sum_of_storage_centers + \
-			((y.shipping_storage_cost + y.transp_storage_cost
-			 * y.distance_storage)*descison_variables.storage_selected)
-
-			sum_of_distribution_centers = sum_of_distribution_centers + \
-			((y.shipping_distribution_cost + y.transp_distribution_cost
-			* y.distance_distribution) * descison_variables.distribution_selected)
-
-			sum_of_manufacture_method = sum_of_manufacture_method + \
-			(y.hours_raw*y.labor_cost*descison_variables.manufacture_selected)
+		sum_of_storage_centers = get_sum_of_storage_centers(models)
+		sum_of_distribution_centers = get_sum_of_distribution_centers(models)
+		sum_of_manufacture_method = get_sum_of_manufacture_method(models)
 
 		sum_of_product = sum_of_product + ( i.market_price - i.assembly_cost - \
 			sum_of_storage_centers - sum_of_distribution_centers - \
