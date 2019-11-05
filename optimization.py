@@ -92,6 +92,26 @@ class ProductModel:
 		self.bound = bound
 
 
+class DescisionVariables:
+
+	def __init__(self, supplier_selected, interval_selected,
+				 refurbishment_selected, redesign_selected,
+				 portion_raw, portion_refurb, portion_redesign,
+				 manufacture_selected, storage_selected, distribution_selected,
+				 disassembly_selected):
+		self.supplier_selected = supplier_selected
+		self.interval_selected = interval_selected
+		self.refurbishment_selected = refurbishment_selected
+		self.redesign_selected = redesign_selected
+		self.portion_raw = portion_raw
+		self.portion_refurb = portion_refurb
+		self.portion_redesign = portion_redesign
+		self.manufacture_selected = manufacture_selected
+		self.storage_selected = storage_selected
+		self.distribution_selected = distribution_selected
+		self.disassembly_selected = disassembly_selected
+
+
 def array_sum(array_values):
 	result = 0
 	for i in array_values:
@@ -99,5 +119,31 @@ def array_sum(array_values):
 	return result
 
 if __name__=='__main__':
-	ProductModel m1 = ProductModel()
+	models = [ProductModel(), ProductModel(), ProductModel()]
+	descison_variables = DescisionVariables()
+
+	sum_of_product = 0
+	for i in models:
+		sum_of_storage_centers = 0
+		sum_of_distribution_centers = 0
+		sum_of_manufacture_method = 0
+
+		for y in models:
+			sum_of_storage_centers = sum_of_storage_centers + \
+			((y.shipping_storage_cost + y.transp_storage_cost
+			 * y.distance_storage)*descison_variables.storage_selected)
+
+			sum_of_distribution_centers = sum_of_distribution_centers + \
+			((y.shipping_distribution_cost + y.transp_distribution_cost
+			* y.distance_distribution) * descison_variables.distribution_selected)
+
+			sum_of_manufacture_method = sum_of_manufacture_method + \
+			(y.hours_raw*y.labor_cost*descison_variables.manufacture_selected)
+
+		sum_of_product = sum_of_product + ( i.market_price - i.assembly_cost - \
+			sum_of_storage_centers - sum_of_distribution_centers - \
+			sum_of_manufacture_method -i.manufacture_raw_cost - \
+			i.variable_raw_cost )
+
+
 
