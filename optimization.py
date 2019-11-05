@@ -20,8 +20,7 @@ class ProductModel:
 			defective_percentage, hours_refurbished,
 			manufacture_refurbished_cost, refurbish_method_capacity,
 			order_refurbish_cost, market_price_redesign,
-			hours_redesigned, variable_refurbished_cost,
-			redesign_method_capacity, order_redesign_cost,
+			hours_redesigned,redesign_method_capacity, order_redesign_cost,
 			penalty_excess, initial_inventory, demand,
 			final_inventory, inventory_cost, pollution_shipping_dissasembly,
 			pollution_manufacturing, pollution_shipping_storage,
@@ -71,7 +70,6 @@ class ProductModel:
 		self.hours_refurbished = hours_refurbished
 		self.refurbish_method_capacity = refurbish_method_capacity
 		self.market_price_redesign = market_price_redesign
-		self.variable_refurbished_cost = variable_refurbished_cost
 		self.order_redesign_cost = order_redesign_cost
 		self.initial_inventory = initial_inventory
 		self.inventory_cost = inventory_cost
@@ -101,5 +99,5 @@ def array_sum(array_values):
 	return result
 
 if __name__=='__main__':
-	
-	
+	ProductModel m1 = ProductModel()
+
