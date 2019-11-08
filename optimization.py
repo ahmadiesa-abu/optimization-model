@@ -63,16 +63,20 @@ class ManufactureMethod:
 class RefurbishmentMethod:
 
     def __init__(self, variable_refurbished_cost, refurbish_method_capacity,
-                 order_refurbish_cost):
+                 order_refurbish_cost, product_models= [],
+                 refurbishment_selected, portion_refurb):
         self.variable_refurbished_cost = variable_refurbished_cost
         self.refurbish_method_capacity = refurbish_method_capacity
         self.order_refurbish_cost = order_refurbish_cost
+        self.product_models = product_models
+        self.refurbishment_selected = refurbishment_selected
+        self.portion_refurb = portion_refurb
 
 
 class RedesignMethod:
 
     def __init__(self, variable_redesigned_cost, redesign_method_capacity,
-                 order_redesign_cost):
+                 order_redesign_cost, product_model= []):
         self.variable_redesigned_cost = variable_redesigned_cost
         self.redesign_method_capacity = redesign_method_capacity
         self.order_redesign_cost = order_redesign_cost
@@ -145,6 +149,18 @@ def get_sum_of_distribution_centers(shipping_distribution_cost,
     return sum_of_distribution_centers
 
 
+def get_sum_of_disassembly_centers(shipping_disassembly_cost,
+                                    disassembly_centers):
+    sum_of_disassembly_centers = 0
+    for y in disassembly_centers:
+        sum_of_disassembly_centers = sum_of_distribution_centers + \
+                                      ((shipping_disassembly_cost +
+                                        y.transp_disassembly_cost
+                                        * y.distance_disassembly)
+                                       * y.disassembly_selected)
+    return sum_of_disassembly_centers
+
+
 def get_sum_of_manufacture_method(manufacture_methods, labor_cost):
     sum_of_manufacture_method = 0
     for y in manufacture_methods:
@@ -154,7 +170,7 @@ def get_sum_of_manufacture_method(manufacture_methods, labor_cost):
     return sum_of_manufacture_method
 
 
-def get_sum_of_products(models, generic_vals, variable_raw_cost):
+def get_sum_of_products_raw(models, generic_vals, variable_raw_cost):
     sum_of_product = 0
     for i in models:
         sum_of_storage_centers = \
@@ -176,31 +192,70 @@ def get_sum_of_products(models, generic_vals, variable_raw_cost):
     return sum_of_product
 
 
+def get_sum_of_products_refurb(models, generic_vals,
+                               variable_refurbished_cost):
+    sum_of_product = 0
+    for i in models:
+        sum_of_storage_centers = \
+            get_sum_of_storage_centers(i.shipping_storage_cost,
+                                       i.storage_centers)
+        sum_of_distribution_centers = \
+            get_sum_of_distribution_centers(i.shipping_distribution_cost,
+                                            i.distribution_centers)
+
+        sum_of_disassembly_centers = \
+            get_sum_of_disassembly_centers(i.shipping_disassembly_cost,
+                                           i.disassembly_centers)
+
+
+
+        sum_of_product = sum_of_product + (i.market_price_refurb -
+                                           i.assembly_cost -
+                                           variable_refurbished_cost -
+                                           sum_of_storage_centers -
+                                           sum_of_distribution_centers -
+                                           sum_of_disassembly_centers +
+                                           generic_vals.defective_percentage/
+                                           (1- generic_vals.defective_percentage)
+                                           * sum_of_disassembly_centers -
+                                           (i.hours_refurbished *
+                                            generic_vals.labor_cost) -
+                                           i.manufacture_refurbished_cost)
+    return sum_of_product
+
 if __name__ == '__main__':
     indecies = [Index(), Index(), Index()]
 
 
     raw_suppliers = []
+    refurb_methods = []
 
     generic_vals = GenericValues()
 
     F1 = 0
 
     for raw_supplier in raw_suppliers:
-
-        sum_of_products = get_sum_of_products(raw_supplier.product_models,
+        sum_of_products = get_sum_of_products_raw(raw_supplier.product_models,
                                               generic_vals,
                                               raw_supplier.variable_raw_cost)
         x_value = 0 # sum of t and i
-
-        F1 = F1 + sum_of_products * x_value * raw_supplier.portion_raw
+        F1 = F1 + (sum_of_products * x_value * raw_supplier.portion_raw)
 
     for raw_supplier in raw_suppliers:
         F1 = F1 - (raw_supplier.order_raw_cost *
                    raw_supplier.supplier_selected)
 
 
+    for refurb_method in refurb_methods:
+        sum_of_products = get_sum_of_products_refurb(
+            refurb_methods.product_models, generic_vals,
+            refurb_method.variable_refurbished_cost)
 
+        F1 = F1 - (sum_of_products * ((1- generic_vals.defective_percentage)
+        * refurb_method.portion_refurb *
+                                      refurb_method.refurbish_method_capacity))
 
-
+    for refurb_method in refurb_methods:
+        F1 = F1 - (refurb_method.order_refurbish_cost *
+                   refurb_method.refurbishment_selected)
 
