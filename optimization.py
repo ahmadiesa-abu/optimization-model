@@ -80,11 +80,11 @@ class RedesignMethod:
 
 class RawSupplier:
 
-    def __init__(self, variable_raw_cost, order_raw_cost, product_model,
+    def __init__(self, variable_raw_cost, order_raw_cost, product_models = [],
                  portion_raw, supplier_selected):
         self.variable_raw_cost = variable_raw_cost
         self.order_raw_cost = order_raw_cost
-        self.product_model = product_model
+        self.product_models = product_models
         self.portion_raw = portion_raw
         self.supplier_selected = supplier_selected
 
@@ -100,8 +100,7 @@ class ProductModel:
                  pollution_refuribshed, pollution_dissasembly,
                  pollution_shipping_distribution, storage_centers=[],
                  distribution_centers=[], disassembly_centers=[],
-                 manufacture_methods=[], refurb_methods=[],
-                 redesign_methods=[]):
+                 manufacture_methods=[]):
         self.market_price = market_price
         self.assembly_cost = assembly_cost
         self.shipping_storage_cost = shipping_storage_cost
@@ -122,8 +121,6 @@ class ProductModel:
         self.distribution_centers = distribution_centers
         self.disassembly_centers = disassembly_centers
         self.manufacture_methods = manufacture_methods
-        self.refurb_methods = refurb_methods
-        self.redesign_methods = redesign_methods
 
 
 def get_sum_of_storage_centers(shipping_storage_cost, storage_centers):
@@ -182,10 +179,28 @@ def get_sum_of_products(models, generic_vals, variable_raw_cost):
 if __name__ == '__main__':
     indecies = [Index(), Index(), Index()]
 
-    models = [ProductModel(), ProductModel(), ProductModel()]
+
+    raw_suppliers = []
 
     generic_vals = GenericValues()
 
-    variable_raw_cost = 0  # value from raw_supplier loop
-    sum_of_products = get_sum_of_products(models, generic_vals,
-                                          variable_raw_cost)
+    F1 = 0
+
+    for raw_supplier in raw_suppliers:
+
+        sum_of_products = get_sum_of_products(raw_supplier.product_models,
+                                              generic_vals,
+                                              raw_supplier.variable_raw_cost)
+        x_value = 0 # sum of t and i
+
+        F1 = F1 + sum_of_products * x_value * raw_supplier.portion_raw
+
+    for raw_supplier in raw_suppliers:
+        F1 = F1 - (raw_supplier.order_raw_cost *
+                   raw_supplier.supplier_selected)
+
+
+
+
+
+
