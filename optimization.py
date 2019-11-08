@@ -26,30 +26,38 @@ class GenericValues:
 
 class StorageCenter:
 
-    def __init__(self, transp_storage_cost, distance_storage):
+    def __init__(self, transp_storage_cost, distance_storage, storage_selected
+                 ):
         self.transp_storage_cost = transp_storage_cost
         self.distance_storage = distance_storage
+        self.storage_selected = storage_selected
 
 
 class DistributionCenter:
 
-    def __init__(self, transp_distribution_cost, distance_distribution):
+    def __init__(self, transp_distribution_cost, distance_distribution,
+                 distribution_selected):
         self.transp_distribution_cost = transp_distribution_cost
         self.distance_distribution = distance_distribution
+        self.distribution_selected = distribution_selected
 
 
 class DisassemblyCenter:
 
-    def __init__(self, transp_disassembly_cost, distance_disassembly):
+    def __init__(self, transp_disassembly_cost, distance_disassembly,
+                 disassembly_selected):
         self.transp_disassembly_cost = transp_disassembly_cost
         self.distance_disassembly = distance_disassembly
+        self.disassembly_selected = disassembly_selected
 
 
 class ManufactureMethod:
 
-    def __init__(self, hours_raw, pollution_manufacturing):
+    def __init__(self, hours_raw, pollution_manufacturing, manufacture_selected
+                 ):
         self.hours_raw = hours_raw
         self.pollution_manufacturing = pollution_manufacturing
+        self.manufacture_selected = manufacture_selected
 
 
 class RefurbishmentMethod:
@@ -72,7 +80,8 @@ class RedesignMethod:
 
 class RawSupplier:
 
-    def __init__(self, variable_raw_cost, order_raw_cost):
+    def __init__(self, variable_raw_cost, order_raw_cost, product, portion_raw,
+                 supplier_selected):
         self.variable_raw_cost = variable_raw_cost
         self.order_raw_cost = order_raw_cost
 
@@ -114,76 +123,55 @@ class ProductModel:
         self.redesign_methods = redesign_methods
 
 
-class DescisionVariables:
+class RawMaterial:
 
-    def __init__(self, supplier_selected, interval_selected,
-                 refurbishment_selected, redesign_selected,
-                 portion_raw, portion_refurb, portion_redesign,
-                 manufacture_selected, storage_selected,
-                 distribution_selected,
-                 disassembly_selected):
-        self.supplier_selected = supplier_selected
-        self.interval_selected = interval_selected
-        self.refurbishment_selected = refurbishment_selected
-        self.redesign_selected = redesign_selected
-        self.portion_raw = portion_raw
-        self.portion_refurb = portion_refurb
-        self.portion_redesign = portion_redesign
-        self.manufacture_selected = manufacture_selected
-        self.storage_selected = storage_selected
-        self.distribution_selected = distribution_selected
-        self.disassembly_selected = disassembly_selected
+    def __init__(self, number_raw):
+        self.number_raw
 
 
-def get_sum_of_storage_centers(shipping_storage_cost, storage_centers,
-                               descision_variables):
+def get_sum_of_storage_centers(shipping_storage_cost, storage_centers):
     sum_of_storage_centers = 0
     for y in storage_centers:
         sum_of_storage_centers = sum_of_storage_centers + \
                                  ((shipping_storage_cost +
                                    y.transp_storage_cost * y.distance_storage)
-                                  * descision_variables.storage_selected)
+                                  * y.storage_selected)
     return sum_of_storage_centers
 
 
 def get_sum_of_distribution_centers(shipping_distribution_cost,
-                                    distribution_centers, descision_variables):
+                                    distribution_centers):
     sum_of_distribution_centers = 0
     for y in distribution_centers:
         sum_of_distribution_centers = sum_of_distribution_centers + \
                                       ((shipping_distribution_cost +
                                         y.transp_distribution_cost
                                         * y.distance_distribution)
-                                       * descision_variables.
-                                       distribution_selected)
+                                       * y.distribution_selected)
     return sum_of_distribution_centers
 
 
-def get_sum_of_manufacture_method(manufacture_methods, labor_cost,
-                                  descision_variables):
+def get_sum_of_manufacture_method(manufacture_methods, labor_cost):
     sum_of_manufacture_method = 0
     for y in manufacture_methods:
         sum_of_manufacture_method = sum_of_manufacture_method + \
                                     (y.hours_raw * labor_cost *
-                                     descision_variables.manufacture_selected)
+                                     y.manufacture_selected)
     return sum_of_manufacture_method
 
 
-def get_sum_of_products(models, generic_vals, descision_variables,
-                        variable_raw_cost):
+def get_sum_of_products(models, generic_vals, variable_raw_cost):
     sum_of_product = 0
     for i in models:
         sum_of_storage_centers = \
             get_sum_of_storage_centers(i.shipping_storage_cost,
-                                       i.storage_centers, descision_variables)
+                                       i.storage_centers)
         sum_of_distribution_centers = \
             get_sum_of_distribution_centers(i.shipping_distribution_cost,
-                                            i.distribution_centers,
-                                            descision_variables)
+                                            i.distribution_centers)
         sum_of_manufacture_method = \
             get_sum_of_manufacture_method(i.manufacture_methods,
-                                          generic_vals.labor_cost,
-                                          descision_variables)
+                                          generic_vals.labor_cost)
 
         sum_of_product = sum_of_product + (i.market_price - i.assembly_cost -
                                            sum_of_storage_centers -
@@ -199,12 +187,8 @@ if __name__ == '__main__':
 
     models = [ProductModel(), ProductModel(), ProductModel()]
 
-    descision_variables = DescisionVariables()
-
     generic_vals = GenericValues()
 
-
-    variable_raw_cost = 0 # value from raw_supplier loop
+    variable_raw_cost = 0  # value from raw_supplier loop
     sum_of_products = get_sum_of_products(models, generic_vals,
-                                          descision_variables,
                                           variable_raw_cost)
