@@ -4,9 +4,9 @@ import time
 
 class GenericValues:
     def __init__(self, capacity_storage, capacity_distribution,
-                 capacity_disassembly, returning_goal,uncertain_demand,
+                 capacity_disassembly, returning_goal, uncertain_demand,
                  penalty_excess, initial_inventory, demand, final_inventory,
-                 inventory_cost, defective_percentage,labor_cost, up_bound,
+                 inventory_cost, defective_percentage, labor_cost, up_bound,
                  bound):
         self.capacity_storage = capacity_storage
         self.capacity_distribution = capacity_distribution
@@ -23,11 +23,13 @@ class GenericValues:
         self.up_bound = up_bound
         self.bound = bound
 
+
 class StorageCenter:
 
     def __init__(self, transp_storage_cost, distance_storage):
         self.transp_storage_cost = transp_storage_cost
         self.distance_storage = distance_storage
+
 
 class DistributionCenter:
 
@@ -58,6 +60,7 @@ class RefurbishmentMethod:
         self.refurbish_method_capacity = refurbish_method_capacity
         self.order_refurbish_cost = order_refurbish_cost
 
+
 class RedesignMethod:
 
     def __init__(self, variable_redesigned_cost, redesign_method_capacity,
@@ -65,6 +68,14 @@ class RedesignMethod:
         self.variable_redesigned_cost = variable_redesigned_cost
         self.redesign_method_capacity = redesign_method_capacity
         self.order_redesign_cost = order_redesign_cost
+
+
+class RawSupplier:
+
+    def __init__(self, variable_raw_cost, order_raw_cost):
+        self.variable_raw_cost = variable_raw_cost
+        self.order_raw_cost = order_raw_cost
+
 
 class ProductModel:
 
@@ -75,10 +86,10 @@ class ProductModel:
                  market_price_redesign, hours_redesigned,
                  pollution_shipping_dissasembly, pollution_shipping_storage,
                  pollution_refuribshed, pollution_dissasembly,
-                 pollution_shipping_distribution, storage_centers = [],
-                 distribution_centers = [], disassembly_centers = [],
-                 manufacture_methods = [], refurb_methods = [],
-                 redesign_methods = []):
+                 pollution_shipping_distribution, storage_centers=[],
+                 distribution_centers=[], disassembly_centers=[],
+                 manufacture_methods=[], refurb_methods=[],
+                 redesign_methods=[]):
         self.market_price = market_price
         self.assembly_cost = assembly_cost
         self.shipping_storage_cost = shipping_storage_cost
@@ -158,7 +169,8 @@ def get_sum_of_manufacture_method(manufacture_methods, labor_cost,
     return sum_of_manufacture_method
 
 
-def get_sum_of_products(models, generic_vals, descision_variables):
+def get_sum_of_products(models, generic_vals, descision_variables,
+                        variable_raw_cost):
     sum_of_product = 0
     for i in models:
         sum_of_storage_centers = \
@@ -177,8 +189,8 @@ def get_sum_of_products(models, generic_vals, descision_variables):
                                            sum_of_storage_centers -
                                            sum_of_distribution_centers -
                                            sum_of_manufacture_method -
-                                           i.manufacture_raw_cost)
-                                           #-i.variable_raw_cost -- raw
+                                           i.manufacture_raw_cost -
+                                           variable_raw_cost)
     return sum_of_product
 
 
@@ -191,9 +203,8 @@ if __name__ == '__main__':
 
     generic_vals = GenericValues()
 
+
+    variable_raw_cost = 0 # value from raw_supplier loop
     sum_of_products = get_sum_of_products(models, generic_vals,
-                                          descision_variables)
-
-
-
-
+                                          descision_variables,
+                                          variable_raw_cost)
