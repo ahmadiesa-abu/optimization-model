@@ -294,3 +294,7 @@ if __name__ == '__main__':
                    * (redesign_method.portion_redesign *
                       redesign_method.redesign_method_capacity) )
 
+    for redesign_method in redesign_methods:
+        F1 = F1 - (redesign_method.order_redesigned_cost *
+                   redesign_method.redesign_selected)
+
