@@ -177,8 +177,8 @@ def get_sum_of_products(models, generic_vals, descision_variables):
                                            sum_of_storage_centers -
                                            sum_of_distribution_centers -
                                            sum_of_manufacture_method -
-                                           i.manufacture_raw_cost -
-                                           i.variable_raw_cost)
+                                           i.manufacture_raw_cost)
+                                           #-i.variable_raw_cost -- raw
     return sum_of_product
 
 
