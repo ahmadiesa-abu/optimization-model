@@ -80,10 +80,13 @@ class RedesignMethod:
 
 class RawSupplier:
 
-    def __init__(self, variable_raw_cost, order_raw_cost, product, portion_raw,
-                 supplier_selected):
+    def __init__(self, variable_raw_cost, order_raw_cost, product_model,
+                 portion_raw, supplier_selected):
         self.variable_raw_cost = variable_raw_cost
         self.order_raw_cost = order_raw_cost
+        self.product_model = product_model
+        self.portion_raw = portion_raw
+        self.supplier_selected = supplier_selected
 
 
 class ProductModel:
@@ -121,12 +124,6 @@ class ProductModel:
         self.manufacture_methods = manufacture_methods
         self.refurb_methods = refurb_methods
         self.redesign_methods = redesign_methods
-
-
-class RawMaterial:
-
-    def __init__(self, number_raw):
-        self.number_raw
 
 
 def get_sum_of_storage_centers(shipping_storage_cost, storage_centers):
