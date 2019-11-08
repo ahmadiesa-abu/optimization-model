@@ -266,7 +266,9 @@ if __name__ == '__main__':
         sum_of_products = get_sum_of_products_raw(raw_supplier.product_models,
                                               generic_vals)
         x_value = 0 # sum of t and i
-        F1 = F1 + (sum_of_products -  raw_supplier.variable_raw_cost * x_value * raw_supplier.portion_raw)
+        F1 = F1 + (sum_of_products -
+                   raw_supplier.variable_raw_cost
+                   * x_value * raw_supplier.portion_raw)
 
     for raw_supplier in raw_suppliers:
         F1 = F1 - (raw_supplier.order_raw_cost *
@@ -298,3 +300,25 @@ if __name__ == '__main__':
         F1 = F1 - (redesign_method.order_redesigned_cost *
                    redesign_method.redesign_selected)
 
+    F1 = F1 - generic_vals.penalty_excess
+
+    raw_inv = 0
+    for raw_supplier in raw_suppliers:
+        raw_inv = raw_inv + (raw_supplier.portion_raw
+                             * raw_supplier.raw_capacity)
+
+    refurb_inv = 0
+    for refurb_method in refurb_methods:
+        refurb_inv = refurb_inv + (refurb_method.portion_refurb *
+                                   refurb_method.refurbish_method_capacity)
+
+    redesign_inv = 0
+    for redesign_method in redesign_methods:
+        redesign_inv = redesign_inv + (redesign_method.portion_redesign *
+                                       redesign_method.redesign_method_capacity)
+
+    F1 = F1 * ( generic_vals.initial_inventory + raw_inv
+                + ((1-generic_vals.defective_percentage) * refurb_inv)
+                + refurb_inv - generic_vals.demand
+                - generic_vals.final_inventory)
+            - generic_vals.inventory_cost * generic_vals.final_inventory
