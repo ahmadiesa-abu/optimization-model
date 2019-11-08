@@ -76,10 +76,15 @@ class RefurbishmentMethod:
 class RedesignMethod:
 
     def __init__(self, variable_redesigned_cost, redesign_method_capacity,
-                 order_redesign_cost, product_model= []):
+                 order_redesign_cost, product_models= [], redesign_selected,
+                 portion_redesign):
         self.variable_redesigned_cost = variable_redesigned_cost
         self.redesign_method_capacity = redesign_method_capacity
         self.order_redesign_cost = order_redesign_cost
+        self.product_models = product_models
+        self.redesign_selected = redesign_selected
+        self.portion_redesign = portion_redesign
+
 
 
 class RawSupplier:
@@ -149,6 +154,18 @@ def get_sum_of_distribution_centers(shipping_distribution_cost,
     return sum_of_distribution_centers
 
 
+def get_sum_of_distribution_centers_redesign(shipping_distribution_cost,
+                                    distribution_centers):
+    sum_of_distribution_centers = 0
+    for y in distribution_centers:
+        sum_of_distribution_centers = sum_of_distribution_centers + \
+                                      ((shipping_distribution_cost +
+                                        y.transp_distribution_cost
+                                        * 2 * y.distance_distribution)
+                                       * y.distribution_selected)
+    return sum_of_distribution_centers
+
+
 def get_sum_of_disassembly_centers(shipping_disassembly_cost,
                                     disassembly_centers):
     sum_of_disassembly_centers = 0
@@ -170,7 +187,7 @@ def get_sum_of_manufacture_method(manufacture_methods, labor_cost):
     return sum_of_manufacture_method
 
 
-def get_sum_of_products_raw(models, generic_vals, variable_raw_cost):
+def get_sum_of_products_raw(models, generic_vals):
     sum_of_product = 0
     for i in models:
         sum_of_storage_centers = \
@@ -187,13 +204,11 @@ def get_sum_of_products_raw(models, generic_vals, variable_raw_cost):
                                            sum_of_storage_centers -
                                            sum_of_distribution_centers -
                                            sum_of_manufacture_method -
-                                           i.manufacture_raw_cost -
-                                           variable_raw_cost)
+                                           i.manufacture_raw_cost)
     return sum_of_product
 
 
-def get_sum_of_products_refurb(models, generic_vals,
-                               variable_refurbished_cost):
+def get_sum_of_products_refurb(models, generic_vals):
     sum_of_product = 0
     for i in models:
         sum_of_storage_centers = \
@@ -211,7 +226,6 @@ def get_sum_of_products_refurb(models, generic_vals,
 
         sum_of_product = sum_of_product + (i.market_price_refurb -
                                            i.assembly_cost -
-                                           variable_refurbished_cost -
                                            sum_of_storage_centers -
                                            sum_of_distribution_centers -
                                            sum_of_disassembly_centers +
@@ -223,12 +237,26 @@ def get_sum_of_products_refurb(models, generic_vals,
                                            i.manufacture_refurbished_cost)
     return sum_of_product
 
-if __name__ == '__main__':
-    indecies = [Index(), Index(), Index()]
 
+def get_sum_of_products_redesign(models, generic_vals):
+    sum_of_product = 0
+    for i in models:
+        sum_of_distribution_centers = \
+            get_sum_of_distribution_centers_redesign(
+                                            i.shipping_distribution_cost,
+                                            i.distribution_centers)
+
+        sum_of_product = sum_of_product + (i.market_price_redesign -
+                                           sum_of_distribution_centers -
+                                           (i.hours_redesigned *
+                                            generic_vals.labor_cost))
+    return sum_of_product
+
+if __name__ == '__main__':
 
     raw_suppliers = []
     refurb_methods = []
+    redesign_methods = []
 
     generic_vals = GenericValues()
 
@@ -236,10 +264,9 @@ if __name__ == '__main__':
 
     for raw_supplier in raw_suppliers:
         sum_of_products = get_sum_of_products_raw(raw_supplier.product_models,
-                                              generic_vals,
-                                              raw_supplier.variable_raw_cost)
+                                              generic_vals)
         x_value = 0 # sum of t and i
-        F1 = F1 + (sum_of_products * x_value * raw_supplier.portion_raw)
+        F1 = F1 + (sum_of_products -  raw_supplier.variable_raw_cost * x_value * raw_supplier.portion_raw)
 
     for raw_supplier in raw_suppliers:
         F1 = F1 - (raw_supplier.order_raw_cost *
@@ -248,14 +275,22 @@ if __name__ == '__main__':
 
     for refurb_method in refurb_methods:
         sum_of_products = get_sum_of_products_refurb(
-            refurb_methods.product_models, generic_vals,
-            refurb_method.variable_refurbished_cost)
+            refurb_methods.product_models, generic_vals)
 
-        F1 = F1 - (sum_of_products * ((1- generic_vals.defective_percentage)
-        * refurb_method.portion_refurb *
+        F1 = F1 - (sum_of_products - refurb_method.variable_refurbished_cost
+                                    * ((1- generic_vals.defective_percentage)
+                                    * refurb_method.portion_refurb *
                                       refurb_method.refurbish_method_capacity))
 
     for refurb_method in refurb_methods:
         F1 = F1 - (refurb_method.order_refurbish_cost *
                    refurb_method.refurbishment_selected)
+
+    for redesign_method in redesign_methods:
+        sum_of_products = get_sum_of_products_redesign(
+            redesign_methods.product_models, generic_vals)
+
+        F1 = F1 - (sum_of_products - redesign_method.variable_redesigned_cost
+                   * (redesign_method.portion_redesign *
+                      redesign_method.redesign_method_capacity) )
 
