@@ -407,11 +407,11 @@ def solve_f1(raw_suppliers, refurb_methods, redesign_methods , generic_vals):
     for raw_supplier in raw_suppliers:
         sum_of_products = get_sum_of_products_raw_f1(raw_supplier.product_models,
                                               generic_vals)
-        x_value = get_sum_of_time_raw(raw_supplier.times,
+        sum_over_time = get_sum_of_time_raw(raw_supplier.times,
                                       raw_supplier.product_models)
         f1 = f1 + (sum_of_products -
                    raw_supplier.variable_raw_cost
-                   * x_value * raw_supplier.portion_raw)
+                   * sum_over_time * raw_supplier.portion_raw)
 
     for raw_supplier in raw_suppliers:
         f1 = f1 - (raw_supplier.order_raw_cost *
