@@ -1,5 +1,6 @@
 import os
 import time
+import math
 
 
 class GenericValues:
@@ -53,8 +54,9 @@ class DisassemblyCenter:
 
 class Severity:
 
-    def __init__(self, severity_function_new, severity_function_redesign,
+    def __init__(self, severity, severity_function_new, severity_function_redesign,
                  severity_function_refurbished):
+        self.severity = severity
         self.severity_function_new = severity_function_new
         self.severity_function_redesign = severity_function_redesign
         self.severity_function_refurbished = severity_function_refurbished
@@ -149,7 +151,6 @@ class ProductModel:
         self.distribution_centers = distribution_centers
         self.disassembly_centers = disassembly_centers
         self.manufacture_methods = manufacture_methods
-
 
 
 def get_sum_of_storage_centers(shipping_storage_cost, storage_centers):
@@ -410,6 +411,37 @@ def get_sum_of_time_raw(times, models):
                                              * time.interval_selected)
     return sum_of_time_raw
 
+def get_sum_of_manufactured_methods_severity(manfacture_methods, raw_suppliers):
+    sum_of_manufactured_methods_severity = 0
+    for manfacture_method in manfacture_methods:
+        sum_of_severity_exp = 0
+        greater_severity = (list( manfacture_method.severity )[-1]).severity
+        for severity in manfacture_method.severity:
+            sum_of_greater_div_max = 0
+            for servrity_greater in reversed(manfacture_method.severity):
+                if servrity_greater == severity:
+                    break
+                sum_of_greater_div_max = sum_of_greater_div_max + (
+                    servrity_greater.severity/greater_severity)
+            sum_of_severity_exp = sum_of_severity_exp + \
+                                  (math.exp(severity.severity -
+                                           sum_of_greater_div_max)) *\
+                                  severity.severity_function_new
+
+        sum_of_raw_products = 0
+        for raw_supplier in raw_suppliers:
+            for product in raw_supplier.product_models:
+                sum_of_raw_products = sum_of_raw_products + (20000 /
+                                                   manfacture_method.hours_raw
+                                                   * raw_supplier.portion_raw
+                                                   * raw_supplier.raw_capacity)
+
+        sum_of_manufactured_methods_severity = \
+            manfacture_method.manufacture_selected * sum_of_severity_exp * \
+            sum_of_raw_products
+    return sum_of_manufactured_methods_severity
+
+
 
 def solve_f1(raw_suppliers, refurb_methods, redesign_methods , generic_vals):
 
@@ -530,8 +562,17 @@ def solve_f2(raw_suppliers, refurb_methods, redesign_methods , generic_vals):
 
     return f2
 
-if __name__ == '__main__':
+def solve_f3(manfacture_methods, raw_suppliers, refurb_methods,
+             redesign_methods , generic_vals):
 
+    f3 = 0
+    f3 = f3 + get_sum_of_manufactured_methods_severity(manfacture_methods,
+                                                       raw_suppliers)
+
+
+if __name__ == '__main__':
+    manfacture_methods = []
+    product_models = []
     raw_suppliers = []
     refurb_methods = []
     redesign_methods = []
