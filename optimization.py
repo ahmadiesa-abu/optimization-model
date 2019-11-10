@@ -86,16 +86,23 @@ class RedesignMethod:
         self.portion_redesign = portion_redesign
 
 
+class Time:
+
+    def __init__(self,product_models=[], interval_selected):
+        self.product_models = product_models
+        self.interval_selected = interval_selected
+
 
 class RawSupplier:
 
     def __init__(self, variable_raw_cost, order_raw_cost, product_models = [],
-                 portion_raw, supplier_selected):
+                 portion_raw, supplier_selected, times=[]):
         self.variable_raw_cost = variable_raw_cost
         self.order_raw_cost = order_raw_cost
         self.product_models = product_models
         self.portion_raw = portion_raw
         self.supplier_selected = supplier_selected
+        self.times = times
 
 
 class ProductModel:
@@ -107,7 +114,8 @@ class ProductModel:
                  market_price_redesign, hours_redesigned,
                  pollution_shipping_dissasembly, pollution_shipping_storage,
                  pollution_refuribshed, pollution_dissasembly,
-                 pollution_shipping_distribution, storage_centers=[],
+                 pollution_shipping_distribution,manufacture_raw_quantity,
+                 number_raw, storage_centers=[],
                  distribution_centers=[], disassembly_centers=[],
                  manufacture_methods=[]):
         self.market_price = market_price
@@ -126,6 +134,8 @@ class ProductModel:
         self.pollution_refuribshed = pollution_refuribshed
         self.pollution_dissasembly = pollution_dissasembly
         self.pollution_shipping_distribution = pollution_shipping_distribution
+        self.manufacture_raw_quantity =  manufacture_raw_quantity
+        self.number_raw = number_raw
         self.storage_centers = storage_centers
         self.distribution_centers = distribution_centers
         self.disassembly_centers = disassembly_centers
@@ -376,13 +386,29 @@ def get_sum_of_products_redesign_poll_f2(models):
     return sum_of_product
 
 
+def get_sum_of_products_time(models):
+    sum_of_product_time = 0
+    for i in models:
+        sum_of_product_time = sum_of_product_time + (i.manufacture_raw_quantity
+                                                     / 2 * i.number_raw)
+    return sum_of_product_time
+
+def get_sum_of_time_raw(times, models):
+    sum_of_time_raw=0
+    for time in times:
+        sum_of_time_raw = sum_of_time_raw + (get_sum_of_products_time(models)
+                                             * time.interval_selected)
+    return sum_of_time_raw
+
+
 def solve_f1(raw_suppliers, refurb_methods, redesign_methods , generic_vals):
 
     f1 = 0
     for raw_supplier in raw_suppliers:
         sum_of_products = get_sum_of_products_raw_f1(raw_supplier.product_models,
                                               generic_vals)
-        x_value = 0 # sum of t and i
+        x_value = get_sum_of_time_raw(raw_supplier.times,
+                                      raw_supplier.product_models)
         f1 = f1 + (sum_of_products -
                    raw_supplier.variable_raw_cost
                    * x_value * raw_supplier.portion_raw)
