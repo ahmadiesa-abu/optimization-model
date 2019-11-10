@@ -51,13 +51,22 @@ class DisassemblyCenter:
         self.disassembly_selected = disassembly_selected
 
 
+class Severity:
+
+    def __init__(self, severity_function_new, severity_function_redesign,
+                 severity_function_refurbished):
+        self.severity_function_new = severity_function_new
+        self.severity_function_redesign = severity_function_redesign
+        self.severity_function_refurbished = severity_function_refurbished
+
 class ManufactureMethod:
 
     def __init__(self, hours_raw, pollution_manufacturing, manufacture_selected
-                 ):
+                 , severity= []):
         self.hours_raw = hours_raw
         self.pollution_manufacturing = pollution_manufacturing
         self.manufacture_selected = manufacture_selected
+        self.severity = severity
 
 
 class RefurbishmentMethod:
@@ -140,6 +149,7 @@ class ProductModel:
         self.distribution_centers = distribution_centers
         self.disassembly_centers = disassembly_centers
         self.manufacture_methods = manufacture_methods
+
 
 
 def get_sum_of_storage_centers(shipping_storage_cost, storage_centers):
