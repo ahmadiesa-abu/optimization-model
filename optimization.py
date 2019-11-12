@@ -449,15 +449,15 @@ def get_sum_of_refurb_methods_severity(severities, refurb_methods):
                             get_exp_given_severity_till_max(i, max_index) *
                             severities[i-1].severity_function_refurbished
                         
-    sum_of_raw_products = 0
+    sum_of_refurb_products = 0
     for refurb_method in refurb_methods:
         for product in raw_supplier.product_models:
-            sum_of_raw_products = sum_of_raw_products + (20000 /
+            sum_of_refurb_products = sum_of_refurb_products + (20000 /
                                                product.hours_refurbished
                                                * refurb_method.portion_refurb
                                                * refurb_method.refurbish_method_capacity)
  
-    return sum_of_severity_exp * sum_of_raw_products
+    return sum_of_severity_exp * sum_of_refurb_products
 
 
 def get_sum_of_redesign_methods_severity(severities, redesign_methods):
@@ -469,15 +469,15 @@ def get_sum_of_redesign_methods_severity(severities, redesign_methods):
                             get_exp_given_severity_till_max(i, max_index) *
                             severities[i-1].severity_function_redesign
                         
-    sum_of_raw_products = 0
+    sum_of_redesign_products = 0
     for redesign_method in redesign_methods:
         for product in raw_supplier.product_models:
-            sum_of_raw_products = sum_of_raw_products + (20000 /
+            sum_of_redesign_products = sum_of_redesign_products + (20000 /
                                                product.hours_redesigned
                                                * redesign_method.portion_redesign
                                                * redesign_method.redesign_method_capacity)
  
-    return sum_of_severity_exp * sum_of_raw_products
+    return sum_of_severity_exp * sum_of_redesign_products
 
 
 def solve_f1(raw_suppliers, refurb_methods, redesign_methods , generic_vals):
