@@ -16,8 +16,7 @@ class GenericValues:
     def __init__(self, capacity_storage, capacity_distribution,
                  capacity_disassembly, returning_goal, uncertain_demand,
                  penalty_excess, initial_inventory, demand, final_inventory,
-                 inventory_cost, defective_percentage, labor_cost, up_bound,
-                 bound):
+                 inventory_cost, defective_percentage, labor_cost):
         self.capacity_storage = capacity_storage
         self.capacity_distribution = capacity_distribution
         self.capacity_disassembly = capacity_disassembly
@@ -30,8 +29,7 @@ class GenericValues:
         self.inventory_cost = inventory_cost
         self.defective_percentage = defective_percentage
         self.labor_cost = labor_cost
-        self.up_bound = up_bound
-        self.bound = bound
+
     def __str__(self):
       return obj_to_string(self)
 
@@ -115,21 +113,24 @@ class RedesignMethod:
 
 class Time:
 
-    def __init__(self, interval_selected, product_models=[]):
-        self.product_models = product_models
+    def __init__(self, interval_selected, time_period, up_bound, bound):
+        self.time_period = time_period
         self.interval_selected = interval_selected
+        self.up_bound = up_bound
+        self.bound = bound
     def __str__(self):
       return obj_to_string(self)
 
 class RawSupplier:
 
     def __init__(self, variable_raw_cost, order_raw_cost, 
-                 portion_raw, supplier_selected, product_models = [], times=[]):
+                 portion_raw, supplier_selected, raw_capacity, product_models = [], times=[]):
         self.variable_raw_cost = variable_raw_cost
         self.order_raw_cost = order_raw_cost
         self.product_models = product_models
         self.portion_raw = portion_raw
         self.supplier_selected = supplier_selected
+        self.raw_capacity = raw_capacity
         self.times = times
     def __str__(self):
       return obj_to_string(self)
@@ -441,11 +442,11 @@ def get_sum_of_manufactured_methods_severity(severities, raw_suppliers):
     max_index = len(severities)
     sum_of_severity_exp = 0
     for i in range(1,max_index+1):
-        for manfacture_method in raw_suppliers.manfacture_methods:
+        for manfacture_method in raw_suppliers[0].product_models[0].manufacture_methods:
             sum_of_severity_exp = sum_of_severity_exp + \
                                  get_exp_given_severity_till_max(i, max_index) \
                               * manfacture_method.manufacture_selected \
-                              * manfacture_method.severity.severity_function_new
+                              * manfacture_method.severity[i-1].severity_function_new
                         
     sum_of_raw_products = 0
     for raw_supplier in raw_suppliers:
@@ -515,7 +516,7 @@ def solve_f1(raw_suppliers, refurb_methods, redesign_methods , generic_vals):
 
     for refurb_method in refurb_methods:
         sum_of_products = get_sum_of_products_refurb_f1(
-            refurb_methods.product_models, generic_vals)
+            refurb_method.product_models, generic_vals)
 
         f1 = f1 - (sum_of_products - refurb_method.variable_refurbished_cost
                                     * ((1- generic_vals.defective_percentage)
@@ -528,14 +529,14 @@ def solve_f1(raw_suppliers, refurb_methods, redesign_methods , generic_vals):
 
     for redesign_method in redesign_methods:
         sum_of_products = get_sum_of_products_redesign_f1(
-            redesign_methods.product_models, generic_vals)
+            redesign_method.product_models, generic_vals)
 
         f1 = f1 - (sum_of_products - redesign_method.variable_redesigned_cost
                    * (redesign_method.portion_redesign *
                       redesign_method.redesign_method_capacity) )
 
     for redesign_method in redesign_methods:
-        f1 = f1 - (redesign_method.order_redesigned_cost *
+        f1 = f1 - (redesign_method.order_redesign_cost *
                    redesign_method.redesign_selected)
 
 
@@ -576,7 +577,7 @@ def solve_f2(raw_suppliers, refurb_methods, redesign_methods , generic_vals):
 
     for refurb_method in refurb_methods:
         sum_of_products = get_sum_of_products_refurb_f2(
-            raw_supplier.product_models)
+            raw_supplier.product_models, generic_vals)
         f2 = f2 + (sum_of_products
                    * ((1 - generic_vals.defective_percentage)
                       * refurb_method.portion_refurb *
@@ -584,7 +585,7 @@ def solve_f2(raw_suppliers, refurb_methods, redesign_methods , generic_vals):
 
     for redesign_method in redesign_methods:
         sum_of_products = get_sum_of_products_redesign_f2(
-            redesign_methods.product_models)
+            redesign_method.product_models)
 
         f2 = f2 + (sum_of_products
                    * (redesign_method.portion_redesign *
@@ -634,17 +635,51 @@ def _parse_command():
     return parser.parse_args()
 
 if __name__ == '__main__':
-    parse_args = _parse_command()
-    with open(parse_args.input_file) as input_file:
+    #parse_args = _parse_command()
+    with open('test.yaml') as input_file:
       inputs = yaml.full_load(input_file)
-
+    
     severities = []
-    product_models = []
-    raw_suppliers = []
-    refurb_methods = []
-    redesign_methods = []
 
-    generic_vals = GenericValues()
+    for severity in inputs['severity']:
+      severities.append(Severity(severity, 0, inputs['severity'][severity]['severity_function_refurbished'], inputs['severity'][severity]['severity_function_redesign']))
+
+    product_models = []
+    for product in inputs['product']:
+      storage_centers = []
+      for storage_center in inputs['product'][product]['storage_centers']:
+        storage_centers.append(StorageCenter(inputs['product'][product]['storage_centers'][storage_center]['transp_storage_cost'],inputs['product'][product]['storage_centers'][storage_center]['distance_storage'],inputs['product'][product]['storage_centers'][storage_center]['storage_selected']))
+      distribution_centers = []
+      for distribution_center in inputs['product'][product]['distribution_centers']:
+        distribution_centers.append(DistributionCenter(inputs['product'][product]['distribution_centers'][distribution_center]['transp_distribution_cost'],inputs['product'][product]['distribution_centers'][distribution_center]['distance_distribution'],inputs['product'][product]['distribution_centers'][distribution_center]['distribution_selected']))
+      disassembly_centers = []
+      for disassembly_center in inputs['product'][product]['disassembly_centers']:
+        disassembly_centers.append(DisassemblyCenter(inputs['product'][product]['disassembly_centers'][disassembly_center]['transp_disassembly_cost'],inputs['product'][product]['disassembly_centers'][disassembly_center]['distance_disassembly'],inputs['product'][product]['disassembly_centers'][disassembly_center]['disassembly_selected']))
+      manufacture_methods = []
+      for manufacture_method in inputs['product'][product]['manufacture_methods']:
+        manufacture_severities = []
+        for severity in inputs['product'][product]['manufacture_methods'][manufacture_method]['severity']:
+          manufacture_severities.append(Severity(severity, inputs['product'][product]['manufacture_methods'][manufacture_method]['severity'][severity]['severity_function_new'], 0, 0))
+        manufacture_methods.append(ManufactureMethod(inputs['product'][product]['manufacture_methods'][manufacture_method]['hours_raw'],inputs['product'][product]['manufacture_methods'][manufacture_method]['pollution_manufacturing'],inputs['product'][product]['manufacture_methods'][manufacture_method]['manufacture_selected'], manufacture_severities))
+
+      product_models.append(ProductModel(inputs['product'][product]['market_price'],inputs['product'][product]['assembly_cost'],inputs['product'][product]['shipping_storage_cost'],inputs['product'][product]['shipping_distribution_cost'],inputs['product'][product]['manufacture_raw_cost'],inputs['product'][product]['market_price_refurb'],inputs['product'][product]['shipping_disassembly_cost'],inputs['product'][product]['hours_refurbished'],inputs['product'][product]['manufacture_refurbished_cost'],inputs['product'][product]['market_price_redesign'],inputs['product'][product]['hours_redesigned'],inputs['product'][product]['pollution_shipping_dissasembly'],inputs['product'][product]['pollution_shipping_storage'],inputs['product'][product]['pollution_refuribshed'],inputs['product'][product]['pollution_dissasembly'],inputs['product'][product]['pollution_shipping_distribution'],inputs['product'][product]['manufacture_raw_quantity'],inputs['product'][product]['raw_number'],storage_centers,distribution_centers,disassembly_centers,manufacture_methods))
+    
+    raw_suppliers = []
+    for raw_supplier in inputs['raw_supplier']:
+      times = []
+      for time_i in inputs['raw_supplier'][raw_supplier]['times']:
+        times.append(Time(inputs['raw_supplier'][raw_supplier]['times'][time_i]['interval_selected'],time_i, 0, 0))
+      raw_suppliers.append(RawSupplier(inputs['raw_supplier'][raw_supplier]['variable_raw_cost'],inputs['raw_supplier'][raw_supplier]['order_raw_cost'],inputs['raw_supplier'][raw_supplier]['portion_raw'],inputs['raw_supplier'][raw_supplier]['supplier_selected'],inputs['raw_supplier'][raw_supplier]['raw_capacity'],product_models, times))
+
+    refurb_methods = []
+    for refurb_method in inputs['refurb_method']:
+      refurb_methods.append(RefurbishmentMethod(inputs['refurb_method'][refurb_method]['variable_refurbished_cost'],inputs['refurb_method'][refurb_method]['refurbish_method_capacity'],inputs['refurb_method'][refurb_method]['order_refurbish_cost'],inputs['refurb_method'][refurb_method]['refurbishment_selected'],inputs['refurb_method'][refurb_method]['portion_refurb'],product_models))
+
+    redesign_methods = []
+    for redesign_method in inputs['redesign_method']:
+      redesign_methods.append(RedesignMethod(inputs['redesign_method'][redesign_method]['variable_redesigned_cost'],inputs['redesign_method'][redesign_method]['redesign_method_capacity'],inputs['redesign_method'][redesign_method]['order_redesign_cost'],inputs['redesign_method'][redesign_method]['redesign_selected'],inputs['redesign_method'][redesign_method]['portion_redesign'],product_models))
+   
+    generic_vals = GenericValues(inputs['generic_values']['capacity_storage'],inputs['generic_values']['capacity_distribution'],inputs['generic_values']['capacity_disassembly'],inputs['generic_values']['returning_goal'],inputs['generic_values']['uncertain_demand'],inputs['generic_values']['penalty_excess'],inputs['generic_values']['initial_inventory'],inputs['generic_values']['demand'],inputs['generic_values']['final_inventory'],inputs['generic_values']['inventory_cost'],inputs['generic_values']['defective_percentage'],inputs['generic_values']['labor_cost'])
 
     f1 = solve_f1(raw_suppliers, refurb_methods, redesign_methods,
                   generic_vals)
@@ -652,5 +687,9 @@ if __name__ == '__main__':
     f2 = solve_f2(raw_suppliers, refurb_methods, redesign_methods,
                   generic_vals)
     
-    f3 = solve_f3(raw_suppliers, refurb_methods, redesign_methods,
+    f3 = solve_f3(severities, raw_suppliers, refurb_methods, redesign_methods,
                   generic_vals)
+    
+    print ('value of f1 : %s ' % f1)
+    print ('value of f2 : %s ' % f2)
+    print ('value of f3 : %s ' % f3)
