@@ -1,6 +1,6 @@
-import os
-import time
 import math
+import argparse
+import yaml
 
 
 def obj_to_string(obj, extra='    '):
@@ -88,8 +88,8 @@ class ManufactureMethod:
 class RefurbishmentMethod:
 
     def __init__(self, variable_refurbished_cost, refurbish_method_capacity,
-                 order_refurbish_cost, product_models= [],
-                 refurbishment_selected, portion_refurb):
+                 order_refurbish_cost,refurbishment_selected, portion_refurb,
+                 product_models=[]):
         self.variable_refurbished_cost = variable_refurbished_cost
         self.refurbish_method_capacity = refurbish_method_capacity
         self.order_refurbish_cost = order_refurbish_cost
@@ -102,8 +102,8 @@ class RefurbishmentMethod:
 class RedesignMethod:
 
     def __init__(self, variable_redesigned_cost, redesign_method_capacity,
-                 order_redesign_cost, product_models= [], redesign_selected,
-                 portion_redesign):
+                 order_redesign_cost, redesign_selected,
+                 portion_redesign, product_models=[]):
         self.variable_redesigned_cost = variable_redesigned_cost
         self.redesign_method_capacity = redesign_method_capacity
         self.order_redesign_cost = order_redesign_cost
@@ -115,7 +115,7 @@ class RedesignMethod:
 
 class Time:
 
-    def __init__(self,product_models=[], interval_selected):
+    def __init__(self, interval_selected, product_models=[]):
         self.product_models = product_models
         self.interval_selected = interval_selected
     def __str__(self):
@@ -123,8 +123,8 @@ class Time:
 
 class RawSupplier:
 
-    def __init__(self, variable_raw_cost, order_raw_cost, product_models = [],
-                 portion_raw, supplier_selected, times=[]):
+    def __init__(self, variable_raw_cost, order_raw_cost, 
+                 portion_raw, supplier_selected, product_models = [], times=[]):
         self.variable_raw_cost = variable_raw_cost
         self.order_raw_cost = order_raw_cost
         self.product_models = product_models
@@ -240,7 +240,7 @@ def get_sum_of_disassembly_centers(shipping_disassembly_cost,
                                     disassembly_centers):
     sum_of_disassembly_centers = 0
     for y in disassembly_centers:
-        sum_of_disassembly_centers = sum_of_distribution_centers + \
+        sum_of_disassembly_centers = sum_of_disassembly_centers + \
                                       ((shipping_disassembly_cost +
                                         y.transp_disassembly_cost
                                         * y.distance_disassembly)
@@ -252,7 +252,7 @@ def get_sum_of_disassembly_centers_f2(pollution_shipping_dissasembly,
                                     disassembly_centers):
     sum_of_disassembly_centers = 0
     for y in disassembly_centers:
-        sum_of_disassembly_centers = sum_of_distribution_centers + \
+        sum_of_disassembly_centers = sum_of_disassembly_centers + \
                                       (pollution_shipping_dissasembly
                                         * y.distance_disassembly
                                        * y.disassembly_selected)
@@ -425,9 +425,9 @@ def get_sum_of_products_time(models):
 
 def get_sum_of_time_raw(times, models):
     sum_of_time_raw=0
-    for time in times:
+    for time_i in times:
         sum_of_time_raw = sum_of_time_raw + (get_sum_of_products_time(models)
-                                             * time.interval_selected)
+                                             * time_i.interval_selected)
     return sum_of_time_raw
 
 def get_exp_given_severity_till_max(index, max_index):
@@ -438,15 +438,14 @@ def get_exp_given_severity_till_max(index, max_index):
     
 
 def get_sum_of_manufactured_methods_severity(severities, raw_suppliers):
-    sum_of_manufactured_methods_severity = 0
     max_index = len(severities)
     sum_of_severity_exp = 0
     for i in range(1,max_index+1):
         for manfacture_method in raw_suppliers.manfacture_methods:
-            sum_of_severity_exp = sum_of_severity_exp+
-                                get_exp_given_severity_till_max(i, max_index) *
-                                manfacture_method.manufacture_selected *
-                                manfacture_method.severity.severity_function_new
+            sum_of_severity_exp = sum_of_severity_exp + \
+                                 get_exp_given_severity_till_max(i, max_index) \
+                              * manfacture_method.manufacture_selected \
+                              * manfacture_method.severity.severity_function_new
                         
     sum_of_raw_products = 0
     for raw_supplier in raw_suppliers:
@@ -460,17 +459,16 @@ def get_sum_of_manufactured_methods_severity(severities, raw_suppliers):
 
 
 def get_sum_of_refurb_methods_severity(severities, refurb_methods):
-    sum_of_manufactured_methods_severity = 0
     max_index = len(severities)
     sum_of_severity_exp = 0
     for i in range(1,max_index+1):
-        sum_of_severity_exp = sum_of_severity_exp+
-                            get_exp_given_severity_till_max(i, max_index) *
-                            severities[i-1].severity_function_refurbished
+        sum_of_severity_exp = sum_of_severity_exp + \
+                            get_exp_given_severity_till_max(i, max_index) \
+                            * severities[i-1].severity_function_refurbished
                         
     sum_of_refurb_products = 0
     for refurb_method in refurb_methods:
-        for product in raw_supplier.product_models:
+        for product in refurb_method.product_models:
             sum_of_refurb_products = sum_of_refurb_products + (20000 /
                                                product.hours_refurbished
                                                * refurb_method.portion_refurb
@@ -480,17 +478,16 @@ def get_sum_of_refurb_methods_severity(severities, refurb_methods):
 
 
 def get_sum_of_redesign_methods_severity(severities, redesign_methods):
-    sum_of_manufactured_methods_severity = 0
     max_index = len(severities)
     sum_of_severity_exp = 0
     for i in range(1,max_index+1):
-        sum_of_severity_exp = sum_of_severity_exp+
-                            get_exp_given_severity_till_max(i, max_index) *
-                            severities[i-1].severity_function_redesign
+        sum_of_severity_exp = sum_of_severity_exp + \
+                            get_exp_given_severity_till_max(i, max_index) \
+                            * severities[i-1].severity_function_redesign
                         
     sum_of_redesign_products = 0
     for redesign_method in redesign_methods:
-        for product in raw_supplier.product_models:
+        for product in redesign_method.product_models:
             sum_of_redesign_products = sum_of_redesign_products + (20000 /
                                                product.hours_redesigned
                                                * redesign_method.portion_redesign
@@ -629,7 +626,18 @@ def solve_f3(severities, raw_suppliers, refurb_methods,
     return f3
 
 
+def _parse_command():
+    parser = argparse.ArgumentParser(description='Optimization Model')
+    parser.add_argument('--input-file', dest='input_file',
+                        action='store', type=str,
+                        required=True, help='Input file')
+    return parser.parse_args()
+
 if __name__ == '__main__':
+    parse_args = _parse_command()
+    with open(parse_args.input_file) as input_file:
+      inputs = yaml.full_load(input_file)
+
     severities = []
     product_models = []
     raw_suppliers = []
@@ -646,4 +654,3 @@ if __name__ == '__main__':
     
     f3 = solve_f3(raw_suppliers, refurb_methods, redesign_methods,
                   generic_vals)
-
