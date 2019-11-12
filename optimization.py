@@ -411,36 +411,73 @@ def get_sum_of_time_raw(times, models):
                                              * time.interval_selected)
     return sum_of_time_raw
 
-def get_sum_of_manufactured_methods_severity(manfacture_methods, raw_suppliers):
+def get_exp_given_severity_till_max(index, max_index)
+    sum_of_exp_power = 0
+    for i in range(index,max_index+1):
+        sum_of_exp_power = sum_of_exp_power + (i/max_index)
+    return math.exp(1-sum_of_exp_power)
+    
+
+def get_sum_of_manufactured_methods_severity(severities, raw_suppliers):
     sum_of_manufactured_methods_severity = 0
-    for manfacture_method in manfacture_methods:
-        sum_of_severity_exp = 0
-        greater_severity = (list( manfacture_method.severity )[-1]).severity
-        for severity in manfacture_method.severity:
-            sum_of_greater_div_max = 0
-            for servrity_greater in reversed(manfacture_method.severity):
-                if servrity_greater == severity:
-                    break
-                sum_of_greater_div_max = sum_of_greater_div_max + (
-                    servrity_greater.severity/greater_severity)
-            sum_of_severity_exp = sum_of_severity_exp + \
-                                  (math.exp(severity.severity -
-                                           sum_of_greater_div_max)) *\
-                                  severity.severity_function_new
+    max_index = len(severities)
+    sum_of_severity_exp = 0
+    for i in range(1,max_index+1):
+        for manfacture_method in raw_suppliers.manfacture_methods:
+            sum_of_severity_exp = sum_of_severity_exp+
+                                get_exp_given_severity_till_max(i, max_index) *
+                                manfacture_method.manufacture_selected *
+                                manfacture_method.severity.severity_function_new
+                        
+    sum_of_raw_products = 0
+    for raw_supplier in raw_suppliers:
+        for product in raw_supplier.product_models:
+            sum_of_raw_products = sum_of_raw_products + (20000 /
+                                               manfacture_method.hours_raw
+                                               * raw_supplier.portion_raw
+                                               * raw_supplier.raw_capacity)
+ 
+    return sum_of_severity_exp * sum_of_raw_products
 
-        sum_of_raw_products = 0
-        for raw_supplier in raw_suppliers:
-            for product in raw_supplier.product_models:
-                sum_of_raw_products = sum_of_raw_products + (20000 /
-                                                   manfacture_method.hours_raw
-                                                   * raw_supplier.portion_raw
-                                                   * raw_supplier.raw_capacity)
 
-        sum_of_manufactured_methods_severity = \
-            manfacture_method.manufacture_selected * sum_of_severity_exp * \
-            sum_of_raw_products
-    return sum_of_manufactured_methods_severity
+def get_sum_of_refurb_methods_severity(severities, refurb_methods):
+    sum_of_manufactured_methods_severity = 0
+    max_index = len(severities)
+    sum_of_severity_exp = 0
+    for i in range(1,max_index+1):
+        sum_of_severity_exp = sum_of_severity_exp+
+                            get_exp_given_severity_till_max(i, max_index) *
+                            severities[i-1].severity_function_refurbished
+                        
+    sum_of_raw_products = 0
+    for refurb_method in refurb_methods:
+        for product in raw_supplier.product_models:
+            sum_of_raw_products = sum_of_raw_products + (20000 /
+                                               product.hours_refurbished
+                                               * refurb_method.portion_refurb
+                                               * refurb_method.refurbish_method_capacity)
+ 
+    return sum_of_severity_exp * sum_of_raw_products
 
+
+def get_sum_of_redesign_methods_severity(severities, redesign_methods):
+    sum_of_manufactured_methods_severity = 0
+    max_index = len(severities)
+    sum_of_severity_exp = 0
+    for i in range(1,max_index+1):
+        sum_of_severity_exp = sum_of_severity_exp+
+                            get_exp_given_severity_till_max(i, max_index) *
+                            severities[i-1].severity_function_redesign
+                        
+    sum_of_raw_products = 0
+    for redesign_method in redesign_methods:
+        for product in raw_supplier.product_models:
+            sum_of_raw_products = sum_of_raw_products + (20000 /
+                                               product.hours_redesigned
+                                               * redesign_method.portion_redesign
+                                               * redesign_method.redesign_method_capacity)
+ 
+    return sum_of_severity_exp * sum_of_raw_products
 
 
 def solve_f1(raw_suppliers, refurb_methods, redesign_methods , generic_vals):
@@ -562,16 +599,19 @@ def solve_f2(raw_suppliers, refurb_methods, redesign_methods , generic_vals):
 
     return f2
 
-def solve_f3(manfacture_methods, raw_suppliers, refurb_methods,
+def solve_f3(severities, raw_suppliers, refurb_methods,
              redesign_methods , generic_vals):
 
     f3 = 0
-    f3 = f3 + get_sum_of_manufactured_methods_severity(manfacture_methods,
-                                                       raw_suppliers)
+    f3 = f3 + get_sum_of_manufactured_methods_severity(severities, raw_suppliers) \
+            + get_sum_of_refurb_methods_severity(severities, refurb_methods) \
+            + get_sum_of_redesign_methods_severity(severities, redesign_methods)
+    
+    return f3
 
 
 if __name__ == '__main__':
-    manfacture_methods = []
+    severities = []
     product_models = []
     raw_suppliers = []
     refurb_methods = []
@@ -579,9 +619,12 @@ if __name__ == '__main__':
 
     generic_vals = GenericValues()
 
-    F1 = solve_f1(raw_suppliers, refurb_methods, redesign_methods,
+    f1 = solve_f1(raw_suppliers, refurb_methods, redesign_methods,
                   generic_vals)
 
-    F2 = solve_f2(raw_suppliers, refurb_methods, redesign_methods,
+    f2 = solve_f2(raw_suppliers, refurb_methods, redesign_methods,
+                  generic_vals)
+    
+    f3 = solve_f3(raw_suppliers, refurb_methods, redesign_methods,
                   generic_vals)
 
