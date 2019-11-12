@@ -430,7 +430,7 @@ def get_sum_of_time_raw(times, models):
                                              * time.interval_selected)
     return sum_of_time_raw
 
-def get_exp_given_severity_till_max(index, max_index)
+def get_exp_given_severity_till_max(index, max_index):
     sum_of_exp_power = 0
     for i in range(index,max_index+1):
         sum_of_exp_power = sum_of_exp_power + (i/max_index)
