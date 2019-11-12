@@ -3,6 +3,15 @@ import time
 import math
 
 
+def obj_to_string(obj, extra='    '):
+    return str(obj.__class__) + '\n' + '\n'.join(
+        (extra + (str(item) + ' = ' +
+                  (obj_to_string(obj.__dict__[item], extra + '    ') 
+                   if hasattr(obj.__dict__[item], '__dict__') 
+                   else str(obj.__dict__[item])))
+         for item in sorted(obj.__dict__)))
+
+
 class GenericValues:
     def __init__(self, capacity_storage, capacity_distribution,
                  capacity_disassembly, returning_goal, uncertain_demand,
@@ -23,6 +32,8 @@ class GenericValues:
         self.labor_cost = labor_cost
         self.up_bound = up_bound
         self.bound = bound
+    def __str__(self):
+      return obj_to_string(self)
 
 
 class StorageCenter:
@@ -41,7 +52,8 @@ class DistributionCenter:
         self.transp_distribution_cost = transp_distribution_cost
         self.distance_distribution = distance_distribution
         self.distribution_selected = distribution_selected
-
+    def __str__(self):
+      return obj_to_string(self)
 
 class DisassemblyCenter:
 
@@ -50,7 +62,8 @@ class DisassemblyCenter:
         self.transp_disassembly_cost = transp_disassembly_cost
         self.distance_disassembly = distance_disassembly
         self.disassembly_selected = disassembly_selected
-
+    def __str__(self):
+      return obj_to_string(self)
 
 class Severity:
 
@@ -60,7 +73,8 @@ class Severity:
         self.severity_function_new = severity_function_new
         self.severity_function_redesign = severity_function_redesign
         self.severity_function_refurbished = severity_function_refurbished
-
+    def __str__(self):
+      return obj_to_string(self)
 class ManufactureMethod:
 
     def __init__(self, hours_raw, pollution_manufacturing, manufacture_selected
@@ -82,7 +96,8 @@ class RefurbishmentMethod:
         self.product_models = product_models
         self.refurbishment_selected = refurbishment_selected
         self.portion_refurb = portion_refurb
-
+    def __str__(self):
+      return obj_to_string(self)
 
 class RedesignMethod:
 
@@ -95,14 +110,16 @@ class RedesignMethod:
         self.product_models = product_models
         self.redesign_selected = redesign_selected
         self.portion_redesign = portion_redesign
-
+    def __str__(self):
+      return obj_to_string(self)
 
 class Time:
 
     def __init__(self,product_models=[], interval_selected):
         self.product_models = product_models
         self.interval_selected = interval_selected
-
+    def __str__(self):
+      return obj_to_string(self)
 
 class RawSupplier:
 
@@ -114,7 +131,8 @@ class RawSupplier:
         self.portion_raw = portion_raw
         self.supplier_selected = supplier_selected
         self.times = times
-
+    def __str__(self):
+      return obj_to_string(self)
 
 class ProductModel:
 
@@ -151,7 +169,8 @@ class ProductModel:
         self.distribution_centers = distribution_centers
         self.disassembly_centers = disassembly_centers
         self.manufacture_methods = manufacture_methods
-
+    def __str__(self):
+      return obj_to_string(self)
 
 def get_sum_of_storage_centers(shipping_storage_cost, storage_centers):
     sum_of_storage_centers = 0
