@@ -555,12 +555,12 @@ def solve_f1(raw_suppliers, refurb_methods, redesign_methods , generic_vals):
         redesign_inv = redesign_inv + (redesign_method.portion_redesign *
                                        redesign_method.redesign_method_capacity)
 
-    f1 = f1 - generic_vals.penalty_excess * (( generic_vals.initial_inventory
+    f1 = f1 - (generic_vals.penalty_excess * (( generic_vals.initial_inventory
                                               + raw_inv
                 + ((1-generic_vals.defective_percentage) * refurb_inv)
                 + refurb_inv - generic_vals.demand
-                - generic_vals.final_inventory)) - generic_vals.inventory_cost \
-         * generic_vals.final_inventory
+                - generic_vals.final_inventory)) - (generic_vals.inventory_cost \
+         * generic_vals.final_inventory))
 
     return f1
 
