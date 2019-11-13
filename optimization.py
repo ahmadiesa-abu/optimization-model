@@ -421,7 +421,7 @@ def get_sum_of_products_time(models):
     sum_of_product_time = 0
     for i in models:
         sum_of_product_time = sum_of_product_time + (i.manufacture_raw_quantity
-                                                     / 2 * i.number_raw)
+                                                     / (2 * i.number_raw))
     return sum_of_product_time
 
 def get_sum_of_time_raw(times, models):
