@@ -505,8 +505,8 @@ def solve_f1(raw_suppliers, refurb_methods, redesign_methods , generic_vals):
                                               generic_vals)
         sum_over_time = get_sum_of_time_raw(raw_supplier.times,
                                       raw_supplier.product_models)
-        f1 = f1 + (sum_of_products -
-                   raw_supplier.variable_raw_cost
+        f1 = f1 + ((sum_of_products -
+                   raw_supplier.variable_raw_cost)
                    * sum_over_time * raw_supplier.portion_raw)
 
     for raw_supplier in raw_suppliers:
@@ -518,7 +518,7 @@ def solve_f1(raw_suppliers, refurb_methods, redesign_methods , generic_vals):
         sum_of_products = get_sum_of_products_refurb_f1(
             refurb_method.product_models, generic_vals)
 
-        f1 = f1 - (sum_of_products - refurb_method.variable_refurbished_cost
+        f1 = f1 - ((sum_of_products - refurb_method.variable_refurbished_cost)
                                     * ((1- generic_vals.defective_percentage)
                                     * refurb_method.portion_refurb *
                                       refurb_method.refurbish_method_capacity))
@@ -531,7 +531,7 @@ def solve_f1(raw_suppliers, refurb_methods, redesign_methods , generic_vals):
         sum_of_products = get_sum_of_products_redesign_f1(
             redesign_method.product_models, generic_vals)
 
-        f1 = f1 - (sum_of_products - redesign_method.variable_redesigned_cost
+        f1 = f1 - ((sum_of_products - redesign_method.variable_redesigned_cost)
                    * (redesign_method.portion_redesign *
                       redesign_method.redesign_method_capacity) )
 
