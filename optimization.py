@@ -435,7 +435,7 @@ def get_exp_given_severity_till_max(index, max_index):
     sum_of_exp_power = 0
     for i in range(index,max_index+1):
         sum_of_exp_power = sum_of_exp_power + (i/max_index)
-    return math.exp(1-sum_of_exp_power)
+    return math.exp(index-sum_of_exp_power)
     
 
 def get_sum_of_manufactured_methods_severity(severities, raw_suppliers):
