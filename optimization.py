@@ -642,7 +642,7 @@ if __name__ == '__main__':
     severities = []
 
     for severity in inputs['severity']:
-      severities.append(Severity(severity, 0, inputs['severity'][severity]['severity_function_refurbished'], inputs['severity'][severity]['severity_function_redesign']))
+      severities.append(Severity(severity, 0, inputs['severity'][severity]['severity_function_redesign'], inputs['severity'][severity]['severity_function_refurbished']))
 
     product_models = []
     for product in inputs['product']:
